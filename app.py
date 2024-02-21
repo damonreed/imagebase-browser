@@ -46,7 +46,7 @@ def main(page: ft.Page):
         content_title.value = items[e.control.data]["title"]
         content_text.value = items[e.control.data]["prompt"]
         content_image.src = items[e.control.data]["url"]
-        items = get_rows()
+        # items = get_rows()
         page.update()
 
     # Left-side list of items
@@ -63,7 +63,7 @@ def main(page: ft.Page):
     )
 
     # Right-side content display
-    content_display = ft.Column(content_stack, expand=True)
+    content_display = ft.Column(content_stack, expand=True, scroll=ft.ScrollMode.ALWAYS)
 
     # Main layout
     main_row = ft.Row([items_list, content_display], expand=True)
