@@ -1,6 +1,7 @@
 from os import getenv
 import flet as ft
-import imagebase
+from google.cloud import bigquery as bq
+
 
 # Get PORT value from environment
 PORT = int(getenv("PORT", "8550"))
@@ -9,24 +10,32 @@ project = "imagebase-414802"
 dataset = "imagebase"
 label = "fantasy"
 
-db_client = imagebase.db.DB(project=project, dataset=dataset, table=label)
+db_client = bq.Client(project=project)
+db_table = f"{project}.{dataset}.{label}"
 
 
-def get_rows():
-    # Get all images from the database
-    rows = db_client.get_all()
+def get_items():
+    """Get image headers from the database"""
+    h_query = "title, prompt, url"
+    return db_client.query(f"SELECT {h_query} FROM {db_table}").result()
 
-    # Create a dictionary of images
-    items = {}
-    for row in rows:
-        items[row["id"]] = dict(row)
-    return items
+
+# Function to get item tiles
+def get_item_tiles(click_function):
+    tile_list = []
+    for item in get_items():
+        tile = ft.ListTile(
+            title=ft.Text(item["title"]),
+            leading=ft.Image(item["url"], fit="contain"),
+            data=item,
+            on_click=click_function,
+        )
+        tile_list.append(tile)
+    return tile_list
 
 
 # Main function
 def main(page: ft.Page):
-    # Create a dictionary of images
-    items = get_rows()
 
     # Right-side content placeholder
     content_title = ft.Text(
@@ -34,32 +43,24 @@ def main(page: ft.Page):
         theme_style=ft.TextThemeStyle.DISPLAY_MEDIUM,
     )
     content_text = ft.Text()
-    content_image = ft.Image(src="https://i.imgflip.com/6nlb4g.jpg")
+    content_image = ft.Image(src="", height=500, width=500)
     content_stack = [
         content_title,
         content_text,
         content_image,
     ]
 
-    # Function to update right-side content
+    # Function to update content
     def item_clicked(e):
-        content_title.value = items[e.control.data]["title"]
-        content_text.value = items[e.control.data]["prompt"]
-        content_image.src = items[e.control.data]["url"]
-        # items = get_rows()
+        content_title.value = e.control.data["title"]
+        content_text.value = e.control.data["prompt"]
+        content_image.src = e.control.data["url"]
         page.update()
 
     # Left-side list of items
     items_list = ft.ListView(
-        [
-            ft.ListTile(
-                title=ft.Text(items[item]["title"]),
-                data=item,
-                on_click=item_clicked,
-            )
-            for item in items.keys()
-        ],
-        width=200,
+        controls=get_item_tiles(item_clicked),
+        width=400,
     )
 
     # Right-side content display
