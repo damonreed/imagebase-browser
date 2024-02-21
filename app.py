@@ -46,6 +46,7 @@ def main(page: ft.Page):
         content_title.value = items[e.control.data]["title"]
         content_text.value = items[e.control.data]["prompt"]
         content_image.src = items[e.control.data]["url"]
+        items = get_rows()
         page.update()
 
     # Left-side list of items
