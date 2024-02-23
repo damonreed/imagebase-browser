@@ -13,6 +13,8 @@ label = "fantasy"
 db_client = bq.Client(project=project)
 db_table = f"{project}.{dataset}.{label}"
 
+url = ""
+
 
 def get_items():
     """Get image headers from the database"""
@@ -43,18 +45,16 @@ def main(page: ft.Page):
         theme_style=ft.TextThemeStyle.DISPLAY_MEDIUM,
     )
     content_text = ft.Text()
-    content_image = ft.Image(src="", height=500, width=500)
-    content_stack = [
-        content_title,
-        content_text,
-        content_image,
-    ]
+    content_image = ft.Image(src=url, height=500, width=500)
+    content_url = ft.TextSpan("download image", url=url)
+    content_stack = [content_title, content_text, content_image, content_url]
 
     # Function to update content
     def item_clicked(e):
         content_title.value = e.control.data["title"]
         content_text.value = e.control.data["prompt"]
         content_image.src = e.control.data["url"]
+        items_list.controls = get_item_tiles(item_clicked)
         page.update()
 
     # Left-side list of items
